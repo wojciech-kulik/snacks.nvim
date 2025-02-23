@@ -24,9 +24,6 @@ function M.new(src)
   local self = setmetatable({}, M)
   self.src = src
   self.file = self:convert()
-  if images[self.file] then
-    return images[self.file]
-  end
   images[self.file] = self
   _id = _id + 1
   local bit = require("bit")
