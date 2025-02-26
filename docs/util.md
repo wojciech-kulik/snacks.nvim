@@ -65,6 +65,16 @@ Encodes a string to be used as a file name.
 Snacks.util.file_encode(str)
 ```
 
+### `Snacks.util.get_lang()`
+
+```lua
+---@param lang string|number|nil
+---@overload fun(buf:number):string?
+---@overload fun(ft:string):string?
+---@return string?
+Snacks.util.get_lang(lang)
+```
+
 ### `Snacks.util.icon()`
 
 Get an icon from `mini.icons` or `nvim-web-devicons`.

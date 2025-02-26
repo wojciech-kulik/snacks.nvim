@@ -107,7 +107,7 @@ local defaults = {
 }
 
 ---@diagnostic disable-next-line: invisible
-M.TS_ASYNC = vim.treesitter.languagetree._async_parse ~= nil
+M.TS_ASYNC = (vim.treesitter.languagetree or {})._async_parse ~= nil
 
 local id = 0
 
@@ -315,18 +315,6 @@ end
 local TSScope = setmetatable({}, Scope)
 TSScope.__index = TSScope
 
-function TSScope.has_ts(buf)
-  if vim.b[buf].snacks_ts == nil then
-    if vim.b[buf].ts_highlight then
-      vim.b[buf].snacks_ts = true
-    else
-      local ok, parser = pcall(vim.treesitter.get_parser, buf)
-      vim.b[buf].snacks_ts = ok and parser ~= nil
-    end
-  end
-  return vim.b[buf].snacks_ts
-end
-
 -- Expand the scope to fill the range of the node
 function TSScope:fill()
   local n = self.node
@@ -409,7 +397,7 @@ end
 function TSScope:init(cb, opts)
   local parser = self:parser(opts)
   if not parser then
-    return
+    return cb()
   end
   if M.TS_ASYNC then
     parser:parse(opts.treesitter.injections, cb)
@@ -486,7 +474,7 @@ end
 function Scope:__tostring()
   local meta = getmetatable(self)
   return ("%s(buf=%d, from=%d, to=%d, indent=%d)"):format(
-    meta == TSScope and "TSScope" or meta == IndentScope and "IndentSCope" or "Scope",
+    rawequal(meta, TSScope) and "TSScope" or rawequal(meta, IndentScope) and "IndentSCope" or "Scope",
     self.buf or -1,
     self.from or -1,
     self.to or -1,
@@ -513,8 +501,8 @@ function M.get(cb, opts)
   end
 
   ---@type snacks.scope.Scope
-  local Class = opts.treesitter.enabled and TSScope.has_ts(opts.buf) and TSScope or IndentScope
-  if Class == TSScope and opts.parse ~= false then
+  local Class = (opts.treesitter.enabled and Snacks.util.get_lang(opts.buf)) and TSScope or IndentScope
+  if rawequal(Class, TSScope) and opts.parse ~= false then
     TSScope:init(function()
       opts.parse = false
       M.get(cb, opts)
@@ -524,7 +512,7 @@ function M.get(cb, opts)
   local scope = Class:find(opts) --[[ @as snacks.scope.Scope? ]]
 
   -- fallback to indent based detection
-  if not scope and Class == TSScope then
+  if not scope and rawequal(Class, TSScope) then
     Class = IndentScope
     scope = Class:find(opts)
   end

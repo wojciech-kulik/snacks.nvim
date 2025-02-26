@@ -81,6 +81,9 @@ M.transforms = {
   end,
 }
 
+---@diagnostic disable-next-line: invisible
+M.TS_ASYNC = (vim.treesitter.languagetree or {})._async_parse ~= nil
+
 local hover ---@type snacks.image.Hover?
 local uv = vim.uv or vim.loop
 local dir_cache = {} ---@type table<string, boolean>

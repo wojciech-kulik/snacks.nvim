@@ -632,6 +632,7 @@ function M:set_title(title, pos)
     return
   end
   vim.api.nvim_win_set_config(self.win, {
+    border = self.opts.border,
     title = self.opts.title,
     title_pos = self.opts.title_pos,
   })
