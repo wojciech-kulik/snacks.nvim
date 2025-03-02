@@ -5,4 +5,5 @@
 
 (inline_math
   (#set! image.lang "latex")
+  (#set! image.ext "math.tex")
 ) @image.content @image

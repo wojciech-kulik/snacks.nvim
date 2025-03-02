@@ -35,7 +35,7 @@ local defaults = {
   siblings = false, -- expand single line scopes with single line siblings
   -- what buffers to attach to
   filter = function(buf)
-    return vim.bo[buf].buftype == ""
+    return vim.bo[buf].buftype == "" and vim.b[buf].snacks_scope ~= false and vim.g.snacks_scope ~= false
   end,
   -- debounce scope detection in ms
   debounce = 30,
@@ -105,9 +105,6 @@ local defaults = {
     },
   },
 }
-
----@diagnostic disable-next-line: invisible
-M.TS_ASYNC = (vim.treesitter.languagetree or {})._async_parse ~= nil
 
 local id = 0
 
@@ -399,12 +396,7 @@ function TSScope:init(cb, opts)
   if not parser then
     return cb()
   end
-  if M.TS_ASYNC then
-    parser:parse(opts.treesitter.injections, cb)
-  else
-    parser:parse(opts.treesitter.injections)
-    cb()
-  end
+  Snacks.util.parse(parser, opts.treesitter.injections, cb)
 end
 
 ---@param opts snacks.scope.Opts
@@ -600,6 +592,11 @@ end
 function Listener:check(win)
   local buf = vim.api.nvim_win_get_buf(win)
   if not self.opts.filter(buf) then
+    if self.active[win] then
+      local prev = self.active[win]
+      self.active[win] = nil
+      self.cb(win, buf, nil, prev)
+    end
     return
   end
 

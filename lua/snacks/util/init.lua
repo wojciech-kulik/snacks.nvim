@@ -315,7 +315,8 @@ end
 ---@param opts? {ms?:number}
 ---@return T
 function M.throttle(fn, opts)
-  local timer, trailing, ms = assert(uv.new_timer()), false, opts and opts.ms or 20
+  local timer = assert(uv.new_timer())
+  local trailing, ms = false, opts and opts.ms or 20
   local running = false
   local function run()
     running = true
@@ -343,7 +344,8 @@ end
 ---@param opts? {ms?:number}
 ---@return T
 function M.debounce(fn, opts)
-  local timer, ms = assert(uv.new_timer()), opts and opts.ms or 20
+  local timer = assert(uv.new_timer())
+  local ms = opts and opts.ms or 20
   return function()
     timer:start(ms, 0, vim.schedule_wrap(fn))
   end
@@ -440,5 +442,20 @@ M.base64 = vim.base64 and vim.base64.encode
     b64 = b64:sub(1, -1 - padding) .. ("="):rep(padding)
     return b64
   end
+
+--- Parse async when available.
+---@param parser vim.treesitter.LanguageTree
+---@param range boolean|Range|nil: Parse this range in the parser's source.
+---@param on_parse fun(err?: string, trees?: table<integer, TSTree>) Function invoked when parsing completes.
+function M.parse(parser, range, on_parse)
+  ---@diagnostic disable-next-line: invisible
+  local have_async = (vim.treesitter.languagetree or {})._async_parse ~= nil
+  if have_async then
+    parser:parse(range, on_parse)
+  else
+    parser:parse(range)
+    on_parse(nil, parser:trees())
+  end
+end
 
 return M

@@ -136,6 +136,17 @@ Otherwise, it is called when the module is loaded.
 Snacks.util.on_module(modname, cb)
 ```
 
+### `Snacks.util.parse()`
+
+Parse async when available.
+
+```lua
+---@param parser vim.treesitter.LanguageTree
+---@param range boolean|Range|nil: Parse this range in the parser's source.
+---@param on_parse fun(err?: string, trees?: table<integer, TSTree>) Function invoked when parsing completes.
+Snacks.util.parse(parser, range, on_parse)
+```
+
 ### `Snacks.util.redraw()`
 
 Redraw the window.
