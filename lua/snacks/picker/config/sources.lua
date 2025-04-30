@@ -210,10 +210,8 @@ M.files = {
 ---@class snacks.picker.git.Config: snacks.picker.Config
 ---@field args? string[] additional arguments to pass to `git ls-files`
 
----@class snacks.picker.git.branches.Config: snacks.picker.git.Config
----@field all? boolean show all branches, including remote
+---@type snacks.picker.git.Config
 M.git_branches = {
-  all = false,
   finder = "git_branches",
   format = "git_branch",
   preview = "git_log",

@@ -1066,10 +1066,8 @@ Neovim commands
 ```
 
 ```lua
----@class snacks.picker.git.branches.Config: snacks.picker.git.Config
----@field all? boolean show all branches, including remote
+---@type snacks.picker.git.Config
 {
-  all = false,
   finder = "git_branches",
   format = "git_branch",
   preview = "git_log",

@@ -857,7 +857,7 @@ function M.sections.recent_files(opts)
         ret[#ret + 1] = {
           file = file,
           icon = "file",
-          action = ":e " .. vim.fn.fnameescape(file),
+          action = ":e " .. file,
           autokey = true,
         }
         if #ret >= limit then

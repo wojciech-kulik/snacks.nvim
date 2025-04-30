@@ -346,16 +346,12 @@ end
 function M.git_checkout(picker, item)
   picker:close()
   if item then
-    local what = item.branch or item.commit --[[@as string?]]
+    local what = item.branch or item.commit
     if not what then
       Snacks.notify.warn("No branch or commit found", { title = "Snacks Picker" })
       return
     end
     local cmd = { "git", "checkout", what }
-    local remote_branch = what:match("^remotes/[^/]+/(.+)$")
-    if remote_branch then
-      cmd = { "git", "checkout", "-b", remote_branch, what }
-    end
     if item.file then
       vim.list_extend(cmd, { "--", item.file })
     end

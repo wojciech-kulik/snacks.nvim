@@ -57,17 +57,13 @@ end
 function Proc:kill(signal)
   close(self.stdout)
   close(self.stderr)
-  if not self.handle then
+  if self:running() then
     self.aborted = true
-  elseif self:running() then
     self.handle:kill(signal or "sigterm")
   end
 end
 
 function Proc:failed()
-  if self.aborted then
-    return true
-  end
   if self:running() then
     return false
   end
@@ -102,9 +98,6 @@ end
 
 function Proc:run()
   assert(not self.handle, "already running")
-  if self.aborted then
-    return self:on_exit()
-  end
   self.stdout = assert(uv.new_pipe())
   self.stderr = assert(uv.new_pipe())
   self.data = { [self.stdout] = {}, [self.stderr] = {} }
@@ -186,7 +179,7 @@ function Proc:on_exit()
     close(self.stdout)
     close(self.stderr)
     if self.opts.on_exit then
-      self.opts.on_exit(self, self.code ~= 0 or self.signal ~= 0 or self.aborted or false)
+      self.opts.on_exit(self, self.code ~= 0 or self.signal ~= 0)
     end
   end)
 end

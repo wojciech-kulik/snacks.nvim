@@ -6,11 +6,10 @@
 ---@field buf snacks.image.buf
 ---@field doc snacks.image.doc
 ---@field convert snacks.image.convert
----@field inline snacks.image.inline
 local M = setmetatable({}, {
   ---@param M snacks.image
   __index = function(M, k)
-    if vim.tbl_contains({ "terminal", "image", "placement", "util", "doc", "buf", "convert", "inline" }, k) then
+    if vim.tbl_contains({ "terminal", "image", "placement", "util", "doc", "buf", "convert" }, k) then
       M[k] = require("snacks.image." .. k)
     end
     return rawget(M, k)
@@ -25,7 +24,6 @@ M.meta = {
 ---@alias snacks.image.Size {width: number, height: number}
 ---@alias snacks.image.Pos {[1]: number, [2]: number}
 ---@alias snacks.image.Loc snacks.image.Pos|snacks.image.Size|{zindex?: number}
----@alias snacks.image.Type "image"|"math"|"chart"
 
 ---@class snacks.image.Env
 ---@field name string
@@ -80,13 +78,7 @@ local defaults = {
     max_width = 80,
     max_height = 40,
     -- Set to `true`, to conceal the image text when rendering inline.
-    -- (experimental)
-    ---@param lang string tree-sitter language
-    ---@param type snacks.image.Type image type
-    conceal = function(lang, type)
-      -- only conceal math expressions
-      return type == "math"
-    end,
+    conceal = false, -- (experimental)
   },
   img_dirs = { "img", "images", "assets", "static", "public", "media", "attachments" },
   -- window options applied to windows displaying image buffers
@@ -109,13 +101,6 @@ local defaults = {
     placement = false,
   },
   env = {},
-  -- icons used to show where an inline image is located that is
-  -- rendered below the text.
-  icons = {
-    math = "󰪚 ",
-    chart = "󰄧 ",
-    image = " ",
-  },
   ---@class snacks.image.convert.Config
   convert = {
     notify = true, -- show a notification on error
@@ -152,7 +137,7 @@ local defaults = {
       -- but you can add more packages here. Useful for markdown documents.
       packages = { "amsmath", "amssymb", "amsfonts", "amscd", "mathtools" },
       tpl = [[
-        \documentclass[preview,border=0pt,varwidth,12pt]{standalone}
+        \documentclass[preview,border=2pt,varwidth,12pt]{standalone}
         \usepackage{${packages}}
         \begin{document}
         ${header}
@@ -177,7 +162,6 @@ Snacks.config.style("snacks_image", {
 
 Snacks.util.set_hl({
   Spinner = "Special",
-  Anchor = "Special",
   Loading = "NonText",
   Math = { fg = Snacks.util.color({ "@markup.math.latex", "Special", "Normal" }) },
 }, { prefix = "SnacksImage", default = true })
@@ -185,7 +169,6 @@ Snacks.util.set_hl({
 ---@class snacks.image.Opts
 ---@field pos? snacks.image.Pos (row, col) (1,0)-indexed. defaults to the top-left corner
 ---@field range? Range4
----@field conceal? boolean
 ---@field inline? boolean render the image inline in the buffer
 ---@field width? number
 ---@field min_width? number
@@ -195,8 +178,6 @@ Snacks.util.set_hl({
 ---@field max_height? number
 ---@field on_update? fun(placement: snacks.image.Placement)
 ---@field on_update_pre? fun(placement: snacks.image.Placement)
----@field type? snacks.image.Type
----@field auto_resize? boolean
 
 local did_setup = false
 
@@ -238,22 +219,6 @@ function M.setup(ev)
   end
   did_setup = true
   local group = vim.api.nvim_create_augroup("snacks.image", { clear = true })
-
-  vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
-    group = group,
-    callback = function(e)
-      vim.schedule(function()
-        Snacks.image.placement.clean(e.buf)
-      end)
-    end,
-  })
-  vim.api.nvim_create_autocmd({ "ExitPre" }, {
-    group = group,
-    once = true,
-    callback = function()
-      Snacks.image.placement.clean()
-    end,
-  })
 
   if M.config.formats and #M.config.formats > 0 then
     vim.api.nvim_create_autocmd("BufReadCmd", {

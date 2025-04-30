@@ -262,13 +262,10 @@ function M.diff(opts, ctx)
   end
 end
 
----@param opts snacks.picker.git.branches.Config
+---@param opts snacks.picker.git.Config
 ---@type snacks.picker.finder
 function M.branches(opts, ctx)
   local args = git_args(opts.args, "--no-pager", "branch", "--no-color", "-vvl")
-  if opts.all then
-    table.insert(args, "--all")
-  end
   local cwd = svim.fs.normalize(opts and opts.cwd or uv.cwd() or ".") or nil
   cwd = Snacks.git.get_root(cwd)
 
@@ -290,9 +287,6 @@ function M.branches(opts, ctx)
       ---@param item snacks.picker.finder.Item
       transform = function(item)
         item.cwd = cwd
-        if item.text:find("HEAD.*%->") then
-          return false
-        end
         for p, pattern in ipairs(patterns) do
           local status, branch, commit, msg = item.text:match(pattern)
           if status then

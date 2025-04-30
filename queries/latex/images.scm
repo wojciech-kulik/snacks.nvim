@@ -1,15 +1,7 @@
-(inline_formula
-  (#set! image.ext "math.tex"))
-  @image.content @image
+(inline_formula) @image.content @image
 
-(displayed_equation
-  (#set! image.ext "math.tex"))
-  @image.content @image
-
-((math_environment
-  (#set! image.ext "math.tex"))
-  @image.content @image
-  (#not-has-ancestor? @image "displayed_equation"))
+(displayed_equation) @image.content @image
+(math_environment) @image.content @image
 
 (graphics_include
   (_ (path) @image.src)
